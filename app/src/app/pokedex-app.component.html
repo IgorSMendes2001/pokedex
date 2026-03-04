@@ -1,3 +1,19 @@
-<h1>Pokedex</h1>
+<div class="pokedex-wrapper">
+  <header class="main-header">
+    <div class="header-content">
+      <h1 (click)="resetList()">Jitterbit <span>Pokédex</span></h1>
+      <div class="search-bar">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search Pokémon..." (keyup.enter)="search()">
+        <button (click)="search()"><i class="search-icon"></i> Search</button>
+      </div>
+    </div>
+  </header>
 
-<router-outlet></router-outlet>
+  <main class="content-area">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="main-footer">
+    <p>Cloud Apps Team &bull; Home Project 2026</p>
+  </footer>
+</div>
