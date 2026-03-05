@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap, catchError, delay } from 'rxjs/operators';
 
 export interface Pokemon {
   id: number;
@@ -14,18 +15,66 @@ export interface Pokemon {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PokemonService {
-  private apiUrl = 'http://localhost:3000/pokemon';
+  private apiUrl = 'http://localhost:3000/api/pokemon';
+  private pokemonCache = new Map<string, Pokemon>();
+  private listCache = new Map<string, Pokemon[]>();
 
   constructor(private http: HttpClient) {}
 
   getPokemons(limit: number, offset: number): Observable<Pokemon[]> {
-    return this.http.get<Pokemon[]>(`${this.apiUrl}?limit=${limit}&offset=${offset}`);
+    const cacheKey = `${limit}-${offset}`;
+
+    // Return from cache if available (with small delay to ensure async behavior)
+    if (this.listCache.has(cacheKey)) {
+      console.log(`[Service] Cache hit for ${cacheKey}`);
+      return of(this.listCache.get(cacheKey)!).pipe(delay(1));
+    }
+
+    // Make HTTP request
+    console.log(
+      `[Service] Fetching pokemons: limit=${limit}, offset=${offset}`,
+    );
+    return this.http
+      .get<Pokemon[]>(`${this.apiUrl}?limit=${limit}&offset=${offset}`)
+      .pipe(
+        tap((pokemons) => {
+          console.log(`[Service] Received ${pokemons.length} pokemons`);
+          // Cache the result
+          this.listCache.set(cacheKey, pokemons);
+          // Cache individual pokemons
+          pokemons.forEach((p) =>
+            this.pokemonCache.set(p.name.toLowerCase(), p),
+          );
+        }),
+        catchError((error) => {
+          console.error('[Service] Error loading pokemons:', error);
+          throw error;
+        }),
+      );
   }
 
   getPokemonByName(name: string): Observable<Pokemon> {
-    return this.http.get<Pokemon>(`${this.apiUrl}/${name}`);
+    const normalizedName = name.toLowerCase();
+
+    // Check cache first
+    if (this.pokemonCache.has(normalizedName)) {
+      return of(this.pokemonCache.get(normalizedName)!);
+    }
+
+    return this.http.get<Pokemon>(`${this.apiUrl}/${normalizedName}`).pipe(
+      tap((pokemon) => this.pokemonCache.set(normalizedName, pokemon)),
+      catchError((error) => {
+        console.error(`Error loading pokemon ${normalizedName}:`, error);
+        throw error;
+      }),
+    );
+  }
+
+  clearCache(): void {
+    this.pokemonCache.clear();
+    this.listCache.clear();
   }
 }

@@ -1,20 +1,36 @@
-<div class="detail-container" *ngIf="pokemon">
+<div class="loading-spinner" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="error-message" *ngIf="error && !loading">
+  <div class="error-content">
+    <h2>Pokémon not found!</h2>
+    <p>The Pokémon you're looking for doesn't exist or couldn't be loaded.</p>
+    <button class="back-btn" (click)="goBack()">← Back to Pokedex</button>
+  </div>
+</div>
+
+<div class="detail-container" *ngIf="!loading && !error && pokemon">
   <nav class="detail-nav">
     <button class="back-btn" (click)="goBack()">← Back to Pokedex</button>
   </nav>
-  
+
   <div class="detail-card">
     <div class="image-section">
       <div class="circle-bg"></div>
-      <img [src]="pokemon.image" [alt]="pokemon.name">
+      <img [src]="pokemon.image" [alt]="pokemon.name" />
     </div>
 
     <div class="info-section">
-      <span class="pokemon-id">#{{ pokemon.id | number:'3.0' }}</span>
+      <span class="pokemon-id">#{{ pokemon.id | number: "3.0" }}</span>
       <h2 class="pokemon-name">{{ pokemon.name | titlecase }}</h2>
-      
+
       <div class="type-badges">
-        <span *ngFor="let t of pokemon.types" [class]="'badge ' + t">{{ t }}</span>
+        <span
+          *ngFor="let t of pokemon.types; trackBy: trackByType"
+          [class]="'badge ' + t"
+          >{{ t }}</span
+        >
       </div>
 
       <div class="physical-info">
@@ -30,10 +46,16 @@
 
       <div class="stats-container">
         <h3>Base Stats</h3>
-        <div *ngFor="let s of pokemon.stats" class="stat-line">
+        <div
+          *ngFor="let s of pokemon.stats; trackBy: trackByStatName"
+          class="stat-line"
+        >
           <span class="stat-name">{{ s.name }}</span>
           <div class="stat-bar-bg">
-            <div class="stat-bar-fill" [style.width.%]="(s.value / 150) * 100"></div>
+            <div
+              class="stat-bar-fill"
+              [style.width.%]="(s.value / 150) * 100"
+            ></div>
           </div>
           <span class="stat-value">{{ s.value }}</span>
         </div>

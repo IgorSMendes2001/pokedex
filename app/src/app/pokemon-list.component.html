@@ -1,20 +1,40 @@
 <div class="pokemon-grid">
-  <div class="pokemon-card" *ngFor="let p of pokemons" (click)="goToDetail(p.name)">
+  <div
+    class="pokemon-card"
+    *ngFor="let p of pokemons; trackBy: trackByPokemonId"
+    (click)="goToDetail(p.name)"
+  >
     <div class="card-image">
-      <img [src]="p.image" [alt]="p.name">
+      <img [src]="p.image" [alt]="p.name" loading="lazy" />
     </div>
     <div class="card-info">
-      <span class="id">#{{ p.id | number:'3.0' }}</span>
+      <span class="id">#{{ p.id | number: "3.0" }}</span>
       <h3>{{ p.name | titlecase }}</h3>
       <div class="types">
-        <span *ngFor="let t of p.types" [class]="'badge ' + t">{{ t }}</span>
+        <span
+          *ngFor="let t of p.types; trackBy: trackByType"
+          [class]="'badge ' + t"
+          >{{ t }}</span
+        >
       </div>
     </div>
   </div>
 </div>
 
-<div class="load-more-container">
+<div class="error-message" *ngIf="error && !loading">
+  <div class="error-content">
+    <h2>Failed to load Pokémon</h2>
+    <p>Unable to connect to the server. Please make sure the API is running.</p>
+    <button class="btn-load" (click)="retry()">Try Again</button>
+  </div>
+</div>
+
+<div class="load-more-container" *ngIf="!error && hasMore">
   <button class="btn-load" (click)="loadMore()" [disabled]="loading">
-    {{ loading ? 'Loading...' : 'Load More' }}
+    {{ loading ? "Loading..." : "Load More" }}
   </button>
+</div>
+
+<div class="end-message" *ngIf="!error && !hasMore && pokemons.length > 0">
+  <p>You've reached the end! All Pokémon loaded. 🎉</p>
 </div>
