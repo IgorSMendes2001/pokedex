@@ -27,13 +27,11 @@ export class PokemonService {
   getPokemons(limit: number, offset: number): Observable<Pokemon[]> {
     const cacheKey = `${limit}-${offset}`;
 
-    // Return from cache if available
     if (this.listCache.has(cacheKey)) {
       console.log(`[Service] Cache hit for ${cacheKey}`);
       return of(this.listCache.get(cacheKey)!);
     }
 
-    // Make HTTP request
     console.log(
       `[Service] Fetching pokemons: limit=${limit}, offset=${offset}`,
     );
@@ -42,9 +40,7 @@ export class PokemonService {
       .pipe(
         tap((pokemons) => {
           console.log(`[Service] Received ${pokemons.length} pokemons`);
-          // Cache the result
           this.listCache.set(cacheKey, pokemons);
-          // Cache individual pokemons
           pokemons.forEach((p) =>
             this.pokemonCache.set(p.name.toLowerCase(), p),
           );
@@ -61,7 +57,6 @@ export class PokemonService {
 
     console.log(`[Service] Getting pokemon: ${normalizedName}`);
 
-    // Check cache first
     if (this.pokemonCache.has(normalizedName)) {
       console.log(`[Service] Cache HIT for ${normalizedName}`);
       return of(this.pokemonCache.get(normalizedName)!);
@@ -73,7 +68,6 @@ export class PokemonService {
     return this.http.get<Pokemon>(`${this.apiUrl}/${normalizedName}`).pipe(
       tap((pokemon) => {
         console.log(`[Service] Received pokemon from API:`, pokemon.name);
-        // Cache com múltiplas chaves (nome e ID)
         this.pokemonCache.set(normalizedName, pokemon);
         this.pokemonCache.set(pokemon.name.toLowerCase(), pokemon);
         this.pokemonCache.set(String(pokemon.id), pokemon);

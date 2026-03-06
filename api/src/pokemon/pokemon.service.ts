@@ -11,14 +11,13 @@ interface CacheEntry {
 export class PokemonService {
   private readonly baseUrl = "https://pokeapi.co/api/v2/pokemon";
   private readonly cache = new Map<string, CacheEntry>();
-  private readonly CACHE_TTL = 1000 * 60 * 60; // 1 hora em milissegundos
+  private readonly CACHE_TTL = 1000 * 60 * 60;
 
   constructor(private readonly httpService: HttpService) {}
 
   async findAll(limit: number = 20, offset: number = 0) {
     const cacheKey = `list-${limit}-${offset}`;
 
-    // Verifica cache para listas
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       console.log(`[Cache HIT] List ${limit}-${offset}`);
@@ -32,7 +31,6 @@ export class PokemonService {
 
     const pokemonDetails = await Promise.all(
       data.results.map(async (pokemon: any) => {
-        // Extrai o ID da URL para usar cache individual
         const id = pokemon.url.split("/").filter(Boolean).pop();
         const cachedPokemon = this.cache.get(id);
 
@@ -46,7 +44,6 @@ export class PokemonService {
         const detail = await firstValueFrom(this.httpService.get(pokemon.url));
         const formattedData = this.formatPokemonData(detail.data);
 
-        // Cacheia o pokémon individual
         this.cache.set(id, { data: formattedData, timestamp: Date.now() });
         this.cache.set(detail.data.name.toLowerCase(), {
           data: formattedData,
@@ -57,7 +54,6 @@ export class PokemonService {
       }),
     );
 
-    // Cacheia a lista completa
     this.cache.set(cacheKey, { data: pokemonDetails, timestamp: Date.now() });
     return pokemonDetails;
   }
@@ -65,7 +61,6 @@ export class PokemonService {
   async findOne(nameOrId: string) {
     const cacheKey = nameOrId.toLowerCase();
 
-    // Verifica se está no cache e é válido
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       console.log(`[Cache HIT] ${cacheKey}`);
@@ -79,7 +74,6 @@ export class PokemonService {
       );
       const formattedData = this.formatPokemonData(data);
 
-      // Armazena no cache com múltiplas chaves (id e nome)
       this.cache.set(cacheKey, { data: formattedData, timestamp: Date.now() });
       this.cache.set(String(data.id), {
         data: formattedData,
@@ -117,13 +111,11 @@ export class PokemonService {
     };
   }
 
-  // Método para limpar cache (útil em desenvolvimento)
   clearCache() {
     this.cache.clear();
     console.log("[Cache] Cache cleared");
   }
 
-  // Método para obter estatísticas do cache
   getCacheStats() {
     return {
       size: this.cache.size,

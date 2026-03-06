@@ -69,12 +69,10 @@ describe('PokemonService', () => {
     it('should cache pokemons list and reuse on subsequent calls', (done) => {
       mockHttpClient.get.mockReturnValue(of(mockPokemonList));
 
-      // First call
       service.getPokemons(20, 0).subscribe(() => {
-        // Second call should use cache
         service.getPokemons(20, 0).subscribe((pokemons) => {
           expect(pokemons).toEqual(mockPokemonList);
-          expect(mockHttpClient.get).toHaveBeenCalledTimes(1); // Only one HTTP call
+          expect(mockHttpClient.get).toHaveBeenCalledTimes(1);
           done();
         });
       });
@@ -84,10 +82,9 @@ describe('PokemonService', () => {
       mockHttpClient.get.mockReturnValue(of(mockPokemonList));
 
       service.getPokemons(20, 0).subscribe(() => {
-        // After fetching list, individual pokemons should be cached
         service.getPokemonByName('pikachu').subscribe((pokemon) => {
           expect(pokemon).toEqual(mockPokemon);
-          expect(mockHttpClient.get).toHaveBeenCalledTimes(1); // No additional HTTP request
+          expect(mockHttpClient.get).toHaveBeenCalledTimes(1);
           done();
         });
       });
@@ -123,12 +120,10 @@ describe('PokemonService', () => {
     it('should cache fetched pokemon on subsequent calls', (done) => {
       mockHttpClient.get.mockReturnValue(of(mockPokemon));
 
-      // First call
       service.getPokemonByName('pikachu').subscribe(() => {
-        // Second call should use cache
         service.getPokemonByName('pikachu').subscribe((pokemon) => {
           expect(pokemon).toEqual(mockPokemon);
-          expect(mockHttpClient.get).toHaveBeenCalledTimes(1); // Only one HTTP call
+          expect(mockHttpClient.get).toHaveBeenCalledTimes(1);
           done();
         });
       });
@@ -150,10 +145,9 @@ describe('PokemonService', () => {
       mockHttpClient.get.mockReturnValue(of(mockPokemon));
 
       service.getPokemonByName('pikachu').subscribe(() => {
-        // Should be cached by both name and id
         service.getPokemonByName('25').subscribe((pokemon) => {
           expect(pokemon).toEqual(mockPokemon);
-          expect(mockHttpClient.get).toHaveBeenCalledTimes(1); // No additional HTTP call
+          expect(mockHttpClient.get).toHaveBeenCalledTimes(1);
           done();
         });
       });
@@ -177,14 +171,11 @@ describe('PokemonService', () => {
     it('should clear cache and fetch from API again', (done) => {
       mockHttpClient.get.mockReturnValue(of(mockPokemonList));
 
-      // Load some data
       service.getPokemons(20, 0).subscribe(() => {
-        // Clear cache
         service.clearCache();
 
-        // Next calls should fetch from API again
         service.getPokemons(20, 0).subscribe(() => {
-          expect(mockHttpClient.get).toHaveBeenCalledTimes(2); // Two HTTP calls
+          expect(mockHttpClient.get).toHaveBeenCalledTimes(2);
           done();
         });
       });

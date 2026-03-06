@@ -11,6 +11,8 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    # explicitly specify command so compose never defaults to an outdated script
+    command: ["npm", "run", "start"]
     networks:
       - pokedex-network
 

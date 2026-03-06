@@ -28,24 +28,19 @@ export class PokemonListComponent implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('[PokemonList] ngOnInit called');
 
-    // Carrega os dados iniciais
     this.loadMore();
 
-    //Configura o monitoramento de navegação após um pequeno delay
-    // para garantir que a primeira carga não seja interferida
     setTimeout(() => {
       this.setupRouterSubscription();
     }, 100);
   }
 
   setupRouterSubscription() {
-    // Monitora navegação de volta para a home
     this.routerSubscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: any) => {
         console.log('[PokemonList] NavigationEnd:', event.url);
 
-        // Só reseta e recarrega se for navegação para a home e houver pokemons carregados
         if (
           (event.url === '/' || event.url === '') &&
           this.pokemons.length > 0
@@ -73,7 +68,6 @@ export class PokemonListComponent implements OnInit, OnDestroy {
   }
 
   loadMore() {
-    // Previne múltiplas chamadas simultâneas
     if (this.loading || !this.hasMore) {
       console.log('[PokemonList] Load more blocked:', {
         loading: this.loading,
@@ -82,7 +76,6 @@ export class PokemonListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Seta loading imediatamente para prevenir race conditions
     this.loading = true;
     this.error = false;
 
@@ -115,7 +108,6 @@ export class PokemonListComponent implements OnInit, OnDestroy {
         this.loading = false;
         console.log('[PokemonList] Loading finished, loading =', this.loading);
 
-        // Força detecção de mudanças
         this.cdr.detectChanges();
       },
       error: (err) => {

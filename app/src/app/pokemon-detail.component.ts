@@ -26,8 +26,6 @@ export class PokemonDetailComponent implements OnInit, OnDestroy {
   ngOnInit() {
     console.log('[PokemonDetail] ngOnInit called');
 
-    // Inscreve-se nas mudanças de parâmetros da rota
-    // Isso permite que o componente reaja quando o parâmetro muda
     this.routeSubscription = this.route.paramMap.subscribe((params) => {
       const nameOrId = params.get('name');
       console.log('[PokemonDetail] Route param changed:', nameOrId);
@@ -51,7 +49,6 @@ export class PokemonDetailComponent implements OnInit, OnDestroy {
   loadPokemon(nameOrId: string) {
     console.log('[PokemonDetail] Loading pokemon:', nameOrId);
 
-    // Cancela requisição anterior se existir
     if (this.pokemonSubscription) {
       console.log('[PokemonDetail] Cancelling previous request');
       this.pokemonSubscription.unsubscribe();
