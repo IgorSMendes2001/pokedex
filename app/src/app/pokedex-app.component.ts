@@ -13,8 +13,10 @@ export class PokedexAppComponent {
   constructor(private router: Router) {}
 
   search() {
-    if (this.searchTerm.trim()) {
-      this.router.navigate(['/pokemon', this.searchTerm.toLowerCase()]);
+    const term = this.searchTerm.trim();
+    if (term) {
+      console.log('[PokedexApp] Searching for:', term);
+      this.router.navigate(['/pokemon', term.toLowerCase()]);
       this.searchTerm = '';
     }
   }

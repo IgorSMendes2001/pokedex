@@ -3,8 +3,16 @@
     <div class="header-content">
       <h1 (click)="resetList()">Jitterbit <span>Pokédex</span></h1>
       <div class="search-bar">
-        <input type="text" [(ngModel)]="searchTerm" placeholder="Search Pokémon..." (keyup.enter)="search()">
-        <button (click)="search()"><i class="search-icon"></i> Search</button>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search Pokémon by name or ID..."
+          (keyup.enter)="search()"
+        />
+        <button (click)="search()" [disabled]="!searchTerm.trim()">
+          <i class="search-icon"></i>
+          Search
+        </button>
       </div>
     </div>
   </header>

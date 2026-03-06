@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { PokemonService, Pokemon } from './pokemon/pokemon.service';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -22,20 +22,37 @@ export class PokemonListComponent implements OnInit, OnDestroy {
   constructor(
     private pokemonService: PokemonService,
     private router: Router,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
-    this.resetState();
+    console.log('[PokemonList] ngOnInit called');
+
+    // Carrega os dados iniciais
     this.loadMore();
 
+    //Configura o monitoramento de navegação após um pequeno delay
+    // para garantir que a primeira carga não seja interferida
+    setTimeout(() => {
+      this.setupRouterSubscription();
+    }, 100);
+  }
+
+  setupRouterSubscription() {
+    // Monitora navegação de volta para a home
     this.routerSubscription = this.router.events
       .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event: any) => {
-        if (event.url === '/' || event.url === '') {
-          if (this.pokemons.length > 0) {
-            this.resetState();
-            this.loadMore();
-          }
+        console.log('[PokemonList] NavigationEnd:', event.url);
+
+        // Só reseta e recarrega se for navegação para a home e houver pokemons carregados
+        if (
+          (event.url === '/' || event.url === '') &&
+          this.pokemons.length > 0
+        ) {
+          console.log('[PokemonList] Resetting and reloading');
+          this.resetState();
+          this.loadMore();
         }
       });
   }
@@ -47,6 +64,7 @@ export class PokemonListComponent implements OnInit, OnDestroy {
   }
 
   resetState() {
+    console.log('[PokemonList] Resetting state');
     this.pokemons = [];
     this.offset = 0;
     this.hasMore = true;
@@ -55,41 +73,56 @@ export class PokemonListComponent implements OnInit, OnDestroy {
   }
 
   loadMore() {
+    // Previne múltiplas chamadas simultâneas
     if (this.loading || !this.hasMore) {
-      console.log('Load more blocked:', {
+      console.log('[PokemonList] Load more blocked:', {
         loading: this.loading,
         hasMore: this.hasMore,
       });
       return;
     }
 
-    console.log(`Loading more: offset=${this.offset}, limit=${this.limit}`);
+    // Seta loading imediatamente para prevenir race conditions
     this.loading = true;
     this.error = false;
 
+    console.log(
+      `[PokemonList] Loading more: offset=${this.offset}, limit=${this.limit}`,
+    );
+
     this.pokemonService.getPokemons(this.limit, this.offset).subscribe({
       next: (data) => {
-        console.log('Received data:', data?.length || 0, 'pokemons');
+        console.log(
+          '[PokemonList] Received data:',
+          data?.length || 0,
+          'pokemons',
+        );
+        console.log('[PokemonList] Data:', data);
+
         if (data && data.length > 0) {
           this.pokemons = [...this.pokemons, ...data];
           this.offset += this.limit;
           this.hasMore = data.length === this.limit;
-          console.log('Updated state:', {
+          console.log('[PokemonList] Updated state:', {
             totalPokemons: this.pokemons.length,
             offset: this.offset,
             hasMore: this.hasMore,
           });
         } else {
           this.hasMore = false;
-          console.log('No more pokemons available');
+          console.log('[PokemonList] No more pokemons available');
         }
         this.loading = false;
-        this.error = false;
+        console.log('[PokemonList] Loading finished, loading =', this.loading);
+
+        // Força detecção de mudanças
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load pokemons:', err);
+        console.error('[PokemonList] Failed to load pokemons:', err);
         this.loading = false;
         this.error = true;
+        this.cdr.detectChanges();
       },
     });
   }

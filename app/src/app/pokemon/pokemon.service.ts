@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { tap, catchError, delay } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
 
 export interface Pokemon {
   id: number;
@@ -27,10 +27,10 @@ export class PokemonService {
   getPokemons(limit: number, offset: number): Observable<Pokemon[]> {
     const cacheKey = `${limit}-${offset}`;
 
-    // Return from cache if available (with small delay to ensure async behavior)
+    // Return from cache if available
     if (this.listCache.has(cacheKey)) {
       console.log(`[Service] Cache hit for ${cacheKey}`);
-      return of(this.listCache.get(cacheKey)!).pipe(delay(1));
+      return of(this.listCache.get(cacheKey)!);
     }
 
     // Make HTTP request
@@ -56,18 +56,33 @@ export class PokemonService {
       );
   }
 
-  getPokemonByName(name: string): Observable<Pokemon> {
-    const normalizedName = name.toLowerCase();
+  getPokemonByName(nameOrId: string): Observable<Pokemon> {
+    const normalizedName = nameOrId.toLowerCase();
+
+    console.log(`[Service] Getting pokemon: ${normalizedName}`);
 
     // Check cache first
     if (this.pokemonCache.has(normalizedName)) {
+      console.log(`[Service] Cache HIT for ${normalizedName}`);
       return of(this.pokemonCache.get(normalizedName)!);
     }
 
+    console.log(
+      `[Service] Cache MISS for ${normalizedName}, fetching from API`,
+    );
     return this.http.get<Pokemon>(`${this.apiUrl}/${normalizedName}`).pipe(
-      tap((pokemon) => this.pokemonCache.set(normalizedName, pokemon)),
+      tap((pokemon) => {
+        console.log(`[Service] Received pokemon from API:`, pokemon.name);
+        // Cache com múltiplas chaves (nome e ID)
+        this.pokemonCache.set(normalizedName, pokemon);
+        this.pokemonCache.set(pokemon.name.toLowerCase(), pokemon);
+        this.pokemonCache.set(String(pokemon.id), pokemon);
+      }),
       catchError((error) => {
-        console.error(`Error loading pokemon ${normalizedName}:`, error);
+        console.error(
+          `[Service] Error loading pokemon ${normalizedName}:`,
+          error,
+        );
         throw error;
       }),
     );

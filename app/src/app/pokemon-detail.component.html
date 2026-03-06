@@ -6,7 +6,10 @@
   <div class="error-content">
     <h2>Pokémon not found!</h2>
     <p>The Pokémon you're looking for doesn't exist or couldn't be loaded.</p>
-    <button class="back-btn" (click)="goBack()">← Back to Pokedex</button>
+    <p class="hint">
+      💡 Try searching by name (e.g., "pikachu") or ID (e.g., "25")
+    </p>
+    <button class="btn-load" (click)="goBack()">← Back to Pokedex</button>
   </div>
 </div>
 

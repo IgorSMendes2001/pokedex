@@ -1,0 +1,32 @@
+version: "3.8"
+
+services:
+  api:
+    build: ./api
+    container_name: pokedex-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    networks:
+      - pokedex-network
+
+  app:
+    build: ./app
+    container_name: pokedex-app
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - pokedex-network
+
+networks:
+  pokedex-network:
+    driver: bridge
