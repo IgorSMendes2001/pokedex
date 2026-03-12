@@ -38,7 +38,7 @@ export class PokemonService {
     return this.http
       .get<Pokemon[]>(`${this.apiUrl}?limit=${limit}&offset=${offset}`)
       .pipe(
-        tap((pokemons) => {
+        tap((pokemons: Pokemon[]) => {
           console.log(`[Service] Received ${pokemons.length} pokemons`);
           this.listCache.set(cacheKey, pokemons);
           pokemons.forEach((p) =>
@@ -66,7 +66,7 @@ export class PokemonService {
       `[Service] Cache MISS for ${normalizedName}, fetching from API`,
     );
     return this.http.get<Pokemon>(`${this.apiUrl}/${normalizedName}`).pipe(
-      tap((pokemon) => {
+      tap((pokemon: Pokemon) => {
         console.log(`[Service] Received pokemon from API:`, pokemon.name);
         this.pokemonCache.set(normalizedName, pokemon);
         this.pokemonCache.set(pokemon.name.toLowerCase(), pokemon);
